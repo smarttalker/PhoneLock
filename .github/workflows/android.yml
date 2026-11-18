@@ -12,9 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Исходники лежат в репозитории как PhoneLock.zip (залит вручную через
-      # "Add file -> Upload files"), а не как обычное дерево файлов — так его
-      # можно было загрузить с телефона одним файлом. Тут он распаковывается.
       - name: Unzip project sources
         run: |
           if [ ! -f PhoneLock.zip ]; then
@@ -30,16 +27,18 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      # В архиве нет gradlew/gradle-wrapper.jar — gradle/actions/setup-gradle
-      # сам ставит нужный Gradle и кэширует его между запусками.
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.11.1"
 
+      - name: Clean Gradle cache
+        working-directory: PhoneLock
+        run: gradle clean --no-daemon
+
       - name: Build debug APK
         working-directory: PhoneLock
-        run: gradle :app:assembleDebug --no-daemon
+        run: gradle :app:assembleDebug --no-daemon --refresh-dependencies
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
